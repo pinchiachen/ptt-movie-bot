@@ -28,6 +28,8 @@ async function crawlArticleTitles(movieName, maxPage) {
     });
   }
 
+  console.log('titles: ', titles);
+
   return titles;
 }
 
