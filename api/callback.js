@@ -1,6 +1,6 @@
-import axios from "axios";
-import cheerio from "cheerio";
-import { Client } from "@line/bot-sdk";
+import axios from 'axios';
+import cheerio from 'cheerio';
+import { Client } from '@line/bot-sdk';
 
 const config = {
   channelAccessToken: process.env.CHANNEL_ACCESS_TOKEN,
@@ -9,9 +9,9 @@ const config = {
 
 const client = new Client(config);
 
-const BASE_URL = "https://www.ptt.cc/bbs/movie/search";
+const BASE_URL = 'https://www.ptt.cc/bbs/movie/search';
 const DEFAULT_PAGE_LIMIT = 10;
-const DEFAULT_RESPONSE = "查無資料";
+const DEFAULT_RESPONSE = '查無資料';
 
 function getTargetUrl(page, name) {
   return page && name ? `${BASE_URL}?page=${page}&q=${name}` : BASE_URL;
@@ -23,8 +23,8 @@ async function crawlArticleTitles(movieName, maxPage) {
   for (let page = 1; page <= maxPage; page++) {
     const res = await axios.get(getTargetUrl(page, movieName));
     const $ = cheerio.load(res.data);
-    $(".r-ent").each((index, element) => {
-      titles.push($(element).find(".title").text().trim());
+    $('.r-ent').each((index, element) => {
+      titles.push($(element).find('.title').text().trim());
     });
   }
 
@@ -37,33 +37,33 @@ function getTargetTags(titles = []) {
     .map((title) => trimTitle(title));
 }
 
-function isTitleValid(title = "") {
+function isTitleValid(title = '') {
   return (
-    title.includes("雷") &&
-    title.includes("[") &&
-    title.includes("]") &&
-    !title.includes("Re")
+    title.includes('雷') &&
+    title.includes('[') &&
+    title.includes(']') &&
+    !title.includes('Re')
   );
 }
 
-function trimTitle(title = "") {
-  return title.split("]")[0].split("[")[1].replace(" ", "");
+function trimTitle(title = '') {
+  return title.split(']')[0].split('[')[1].replace(' ', '');
 }
 
-function isTagGood(tag = "") {
-  return tag.includes("好");
+function isTagGood(tag = '') {
+  return tag.includes('好');
 }
 
-function isTagBad(tag = "") {
-  return tag.includes("爛") || tag.includes("負");
+function isTagBad(tag = '') {
+  return tag.includes('爛') || tag.includes('負');
 }
 
-function isTagOrdinary(tag = "") {
+function isTagOrdinary(tag = '') {
   return (
-    tag.includes("普") &&
-    !tag.includes("好") &&
-    !tag.includes("爛") &&
-    !tag.includes("負")
+    tag.includes('普') &&
+    !tag.includes('好') &&
+    !tag.includes('爛') &&
+    !tag.includes('負')
   );
 }
 
@@ -101,7 +101,7 @@ function getResponseMsg(goodCount, ordinaryCount, badCount, totalCount) {
     ordinaryCount,
     ordinaryPercent,
     badCount,
-    badPercent
+    badPercent,
   );
 }
 
@@ -112,11 +112,11 @@ function getMsgContent(
   ordinaryCount,
   ordinaryPercent,
   badCount,
-  badPercent
+  badPercent,
 ) {
   return (
     `評價總共有 ${totalCount} 篇\n好雷有 ${goodCount} 篇 / 好雷率為 ${goodPercent.toFixed(
-      2
+      2,
     )} %\n` +
     `普雷有 ${ordinaryCount} 篇 / 普雷率為 ${ordinaryPercent.toFixed(2)} %\n` +
     `負雷有 ${badCount} 篇 / 負雷率為 ${badPercent.toFixed(2)} %`
@@ -124,19 +124,19 @@ function getMsgContent(
 }
 
 module.exports = async (req, res) => {
-  if (req.method === "POST") {
+  if (req.method === 'POST') {
     const body = req.body;
     const events = body.events;
 
     for (const event of events) {
-      if (event.type === "message" && event.message.type === "text") {
+      if (event.type === 'message' && event.message.type === 'text') {
         await handleMessage(event);
       }
     }
 
-    res.status(200).send({ message: "ok" });
+    res.status(200).send({ message: 'ok' });
   } else {
-    res.status(405).send({ message: "Method not allowed" });
+    res.status(405).send({ message: 'Method not allowed' });
   }
 };
 
@@ -148,7 +148,7 @@ async function handleMessage(event) {
     calculateTags(titleTags);
 
   await client.replyMessage(event.replyToken, {
-    type: "text",
+    type: 'text',
     text: getResponseMsg(goodCount, ordinaryCount, badCount, totalCount),
   });
 }

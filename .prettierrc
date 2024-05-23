@@ -1,0 +1,14 @@
+{
+  "overrides": [
+    {
+      "files": ["*.js", "*.ts"],
+      "options": {
+        "useTabs": false,
+        "singleQuote": true,
+        "bracketSpacing": true,
+        "trailingComma": "all",
+        "tabWidth": 2
+      }
+    }
+  ]
+}
