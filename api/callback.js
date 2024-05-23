@@ -21,14 +21,19 @@ async function crawlArticleTitles(movieName, maxPage) {
   const titles = [];
 
   for (let page = 1; page <= maxPage; page++) {
-    const res = await axios.get(getTargetUrl(page, movieName));
-    if (res.status === 404) {
-      break;
+    try {
+      const res = await axios.get(getTargetUrl(page, movieName));
+      const $ = cheerio.load(res.data);
+      $('.r-ent').each((index, element) => {
+        titles.push($(element).find('.title').text().trim());
+      });
+    } catch (err) {
+      if (err.response.status === 404) {
+        break;
+      } else {
+        throw Error(`crawlArticleTitles error: movieName=${movieName}, page=${page}`)
+      }
     }
-    const $ = cheerio.load(res.data);
-    $('.r-ent').each((index, element) => {
-      titles.push($(element).find('.title').text().trim());
-    });
   }
 
   return titles;
