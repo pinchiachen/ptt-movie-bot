@@ -28,8 +28,6 @@ async function crawlArticleTitles(movieName, maxPage) {
     });
   }
 
-  console.log('titles: ', titles);
-
   return titles;
 }
 
@@ -49,7 +47,7 @@ function isTitleValid(title = "") {
 }
 
 function trimTitle(title = "") {
-  return title.split("]", 1)[0].split("[", 1)[1].replace(" ", "");
+  return title.split("]")[0].split("[")[1].replace(" ", "");
 }
 
 function isTagGood(tag = "") {
