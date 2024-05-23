@@ -22,10 +22,10 @@ async function crawlArticleTitles(movieName, maxPage) {
 
   for (let page = 1; page <= maxPage; page++) {
     const res = await axios.get(getTargetUrl(page, movieName));
-    const $ = cheerio.load(res.data);
-    if ($('.bbs-content').text().includes('404')) {
+    if (res.status === 404) {
       break;
     }
+    const $ = cheerio.load(res.data);
     $('.r-ent').each((index, element) => {
       titles.push($(element).find('.title').text().trim());
     });
