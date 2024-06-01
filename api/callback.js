@@ -17,7 +17,7 @@ async function crawlArticleTitles({ movieName, maxPage }) {
   for (let page = 1; page <= maxPage; page++) {
     try {
       const res = await axios.get(
-        `https://www.ptt.cc/bbs/movie/search?page=${page}&q=${name}`,
+        `https://www.ptt.cc/bbs/movie/search?page=${page}&q=${movieName}`,
       );
       const $ = cheerio.load(res.data);
       $('.r-ent').each((index, element) => {
