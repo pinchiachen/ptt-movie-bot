@@ -9,20 +9,16 @@ const config = {
 
 const client = new Client(config);
 
-const BASE_URL = 'https://www.ptt.cc/bbs/movie/search';
 const DEFAULT_PAGE_LIMIT = 10;
-const DEFAULT_RESPONSE = '查無資料';
 
-function getTargetUrl(page, name) {
-  return page && name ? `${BASE_URL}?page=${page}&q=${name}` : BASE_URL;
-}
-
-async function crawlArticleTitles(movieName, maxPage) {
+async function crawlArticleTitles({ movieName, maxPage }) {
   const titles = [];
 
   for (let page = 1; page <= maxPage; page++) {
     try {
-      const res = await axios.get(getTargetUrl(page, movieName));
+      const res = await axios.get(
+        `https://www.ptt.cc/bbs/movie/search?page=${page}&q=${name}`,
+      );
       const $ = cheerio.load(res.data);
       $('.r-ent').each((index, element) => {
         titles.push($(element).find('.title').text().trim());
@@ -31,7 +27,9 @@ async function crawlArticleTitles(movieName, maxPage) {
       if (err.response.status === 404) {
         break;
       } else {
-        throw Error(`crawlArticleTitles error: movieName=${movieName}, page=${page}`)
+        throw Error(
+          `crawlArticleTitles error: movieName=${movieName}, page=${page}`,
+        );
       }
     }
   }
@@ -50,12 +48,12 @@ function isTitleValid(title = '') {
     title.includes('雷') &&
     title.includes('[') &&
     title.includes(']') &&
-    !title.includes('Re')
+    !title.includes('Re:')
   );
 }
 
 function trimTitle(title = '') {
-  return title.split(']')[0].split('[')[1].replace(' ', '');
+  return title.replace(' ', '').split(']')[0].split('[')[1];
 }
 
 function isTagGood(tag = '') {
@@ -90,45 +88,44 @@ function calculateTags(tags = []) {
     }
   });
 
-  const totalCount = goodCount + ordinaryCount + badCount;
-
-  return { goodCount, ordinaryCount, badCount, totalCount };
+  return {
+    goodCount,
+    ordinaryCount,
+    badCount,
+    totalCount: goodCount + ordinaryCount + badCount,
+  };
 }
 
-function getResponseMsg(goodCount, ordinaryCount, badCount, totalCount) {
-  if (totalCount === 0) return DEFAULT_RESPONSE;
+function createResponseMsg({ goodCount, ordinaryCount, badCount, totalCount }) {
+  if (totalCount === 0) return '查無資料';
 
   const goodPercent = (goodCount / totalCount) * 100;
   const ordinaryPercent = (ordinaryCount / totalCount) * 100;
   const badPercent = (badCount / totalCount) * 100;
 
-  return getMsgContent(
-    totalCount,
-    goodCount,
-    goodPercent,
-    ordinaryCount,
-    ordinaryPercent,
-    badCount,
-    badPercent,
-  );
-}
-
-function getMsgContent(
-  totalCount,
-  goodCount,
-  goodPercent,
-  ordinaryCount,
-  ordinaryPercent,
-  badCount,
-  badPercent,
-) {
-  return (
+  const message =
     `評價總共有 ${totalCount} 篇\n好雷有 ${goodCount} 篇 / 好雷率為 ${goodPercent.toFixed(
       2,
     )} %\n` +
     `普雷有 ${ordinaryCount} 篇 / 普雷率為 ${ordinaryPercent.toFixed(2)} %\n` +
-    `負雷有 ${badCount} 篇 / 負雷率為 ${badPercent.toFixed(2)} %`
-  );
+    `負雷有 ${badCount} 篇 / 負雷率為 ${badPercent.toFixed(2)} %`;
+
+  return message;
+}
+
+async function handleMessage(event) {
+  const titles = await crawlArticleTitles({
+    movieName: event.message.text,
+    maxPage: DEFAULT_PAGE_LIMIT,
+  });
+  const titleTags = getTargetTags(titles);
+  const { goodCount, ordinaryCount, badCount, totalCount } =
+    calculateTags(titleTags);
+
+  await client.replyMessage(event.replyToken, {
+    type: 'text',
+    text: createResponseMsg({ goodCount, ordinaryCount, badCount, totalCount }),
+  });
 }
 
 module.exports = async (req, res) => {
@@ -147,16 +144,3 @@ module.exports = async (req, res) => {
     res.status(405).send({ message: 'Method not allowed' });
   }
 };
-
-async function handleMessage(event) {
-  const movieName = event.message.text;
-  const titles = await crawlArticleTitles(movieName, DEFAULT_PAGE_LIMIT);
-  const titleTags = getTargetTags(titles);
-  const { goodCount, ordinaryCount, badCount, totalCount } =
-    calculateTags(titleTags);
-
-  await client.replyMessage(event.replyToken, {
-    type: 'text',
-    text: getResponseMsg(goodCount, ordinaryCount, badCount, totalCount),
-  });
-}
