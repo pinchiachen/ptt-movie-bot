@@ -1,7 +1,7 @@
 # LineBot PTT Movies V2
 
 > *本專案 V1 原本是使用 Python 搭配 Heroku，後來因為 Heroku 的免費方案取消了，所以改用 Node.js 搭配 Vercel 重新實作。*
-> *V1 連結：https://github.com/chenargar/PTT_Movies*
+> *V1 連結：https://github.com/pinchiachen/pttmovies*
 
 ## Description
 本程式用途為輸入電影名稱關鍵字後，利用該關鍵字在 PTT_Movie 網頁板進行搜尋，抓取最新 10 頁資料，分別統計好雷、普雷及負雷數目進行分析，得知該電影在  PTT_Movie 板之評價。
